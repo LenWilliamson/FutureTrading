@@ -14,7 +14,7 @@ def main():
         # Initialize pandas dataframe in chucks as size is too large (> 5GB)
         column_names = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId', 'LastTradeId', 'Timestamp', 'Buyer=Maker',
                         'BestTradPriceMatch']
-        nrows = 100
+        nrows = 200
 
         df = pd.read_csv(agg_trades_data, sep=',', names=column_names, nrows=nrows)
 
