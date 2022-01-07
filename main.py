@@ -1,8 +1,28 @@
+import os
+import pandas as pd
+
 
 def main():
-    # Use a breakpoint in the code line below to debug your script.
-    var = 'World!'
-    print(f'Hello {var}')
+    # Display current working direcotry
+    pwd = os.getcwd()
+    print(f'Print working directory {pwd}')
+
+    if os.name == 'posix':
+        # On Unix system the data is found in the directory AggTrades
+        agg_trades_data = pwd + '/AggTrades/BTCUSDT-aggTrades-2021-01.csv'
+
+        # Initialize pandas dataframe in chucks as size is too large (> 5GB)
+        column_names = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId', 'LastTradeId', 'Timestamp', 'Buyer=Maker',
+                        'BestTradPriceMatch']
+        nrows = 100
+
+        df = pd.read_csv(agg_trades_data, sep=',', names=column_names, nrows=nrows)
+
+        # Get a tweak of our data
+        print(df.info())
+
+    else:
+        print("You are not working on a Unix system.")
 
 
 # Press the green button in the gutter to run the script.
