@@ -1,0 +1,15 @@
+FutureTrading/AggTrades
+
+-> BTCUSDT-1d-2021-01.csv
+    - OHLC Data in one day candles for entire January of 2021
+    - Command: python3 download-kline.py -s BTCUSDT -startDate 2021-01-01 -endDate 2021-01-31 -t spot -i 1d -folder /home/len/FutureTrading/OHLC
+
+
+-> BTCUSDT-1d-2021-01-01_2021-01-02.csv
+    - OHLC Data in one day candles for one day -startDate 2021-01-01 -endDate 2021-01-02
+    - Command: python3 download-kline.py -s BTCUSDT -startDate 2021-01-01 -endDate 2021-01-02 -t spot -i 1d -folder /home/len/FutureTrading/OHLC
+
+
+-> BTCUSDT-30m-2021-01-01_2021-01-02.csv
+    - OHLC Data in 30min candles for one day -startDate 2021-01-01 -endDate 2021-01-02
+    - Command: python3 download-kline.py -s BTCUSDT -startDate 2021-01-01 -endDate 2021-01-02 -t spot -i 30m -folder /home/len/FutureTrading/OHLC
