@@ -13,10 +13,10 @@ def main():
         ohlc_trades_data = pwd + '/OHLC/BTCUSDT-1d-2021-01.csv'
 
         # Initialize pandas dataframe in chucks as size is too large (> 5GB)
-        agg_column_names = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId', 'LastTradeId', 'Timestamp', 'Buyer=Maker',
-                        'BestTradPriceMatch']
-        ohlc_column_names = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime',
-                            'QuoteAssetVol', 'NumberOfTrades', 'TakerBuyBaseAssetVol', 'TakerBuyQuoteAssetVol', 'Ignore']
+        agg_column_names = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId', 'LastTradeId', 'Timestamp',
+                            'Buyer=Maker', 'BestTradPriceMatch']
+        ohlc_column_names = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime', 'QuoteAssetVol',
+                             'NumberOfTrades', 'TakerBuyBaseAssetVol', 'TakerBuyQuoteAssetVol', 'Ignore']
         agg_nrows = 200
 
         df_agg_trades = pd.read_csv(agg_trades_data, sep=',', names=agg_column_names, nrows=agg_nrows)
@@ -35,4 +35,4 @@ def main():
 if __name__ == '__main__':
     main()
 
-# See Pandas Intro for quick infos https://github.com/efldatascience/ds-courses
+# See Pandas Intro for quick info https://github.com/efldatascience/ds-courses
