@@ -10,16 +10,21 @@ def main():
     if os.name == 'posix':
         # On Unix system the data is found in the directory AggTrades
         agg_trades_data = pwd + '/AggTrades/BTCUSDT-aggTrades-2021-01.csv'
+        ohlc_trades_data = pwd + '/OHLC/BTCUSDT-1d-2021-01.csv'
 
         # Initialize pandas dataframe in chucks as size is too large (> 5GB)
-        column_names = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId', 'LastTradeId', 'Timestamp', 'Buyer=Maker',
+        agg_column_names = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId', 'LastTradeId', 'Timestamp', 'Buyer=Maker',
                         'BestTradPriceMatch']
-        nrows = 200
+        ohlc_column_names = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime',
+                            'QuoteAssetVol', 'NumberOfTrades', 'TakerBuyBaseAssetVol', 'TakerBuyQuoteAssetVol', 'Ignore']
+        agg_nrows = 200
 
-        df = pd.read_csv(agg_trades_data, sep=',', names=column_names, nrows=nrows)
+        df_agg_trades = pd.read_csv(agg_trades_data, sep=',', names=agg_column_names, nrows=agg_nrows)
+        df_ohlc_trades = pd.read_csv(ohlc_trades_data, sep=',', names=ohlc_column_names)
 
         # Get a tweak of our data
-        print(df.info())
+        print(df_agg_trades.info())
+        print(df_ohlc_trades.info())
     elif os.name == 'nt':
         print("You are not working on a Windows machine.")
     else:
