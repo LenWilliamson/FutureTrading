@@ -20,9 +20,10 @@ def main():
 
         # Get a tweak of our data
         print(df.info())
-
+    elif os.name == 'nt':
+        print("You are not working on a Windows machine.")
     else:
-        print("You are not working on a Unix system.")
+        print("Only Linus and Windows systems are currently supported.")
 
 
 # Press the green button in the gutter to run the script.
