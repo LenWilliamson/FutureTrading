@@ -16,37 +16,31 @@ def store_data_in_chunks(source_path: str, column_names: List[int], chunk_size: 
 
 
 def main():
+    # Set working directory to the directory containing the script that was used to invoke the Python interpreter
+    os.chdir(sys.path[0])
     # Display current working direcotry
     pwd: str = os.getcwd()
     print(f'Print working directory {pwd}')
 
-    if os.name == 'posix':
-        # On Unix system the data is found in the directory AggTrades
-        ohlc_trades_data: str = pwd + '/OHLC/BTCUSDT-1d-2021-01.csv'
-        ohlc_column_names: List[str] = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime',
-                                        'QuoteAssetVol', 'NumberOfTrades', 'TakerBuyBaseAssetVol',
-                                        'TakerBuyQuoteAssetVol', 'Ignore']
-        df = pd.read_csv(ohlc_trades_data, sep=',', names=ohlc_column_names)
-        # Get a tweak of our data
-        print(df.info())
+    # On Unix system the data is found in the directory aggTrades
+    ohlc_trades_data: str = os.path.join(pwd, 'ohlc', 'BTCUSDT-1d-2021-01.csv')
+    ohlc_column_names: List[str] = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime',
+                                    'QuoteAssetVol', 'NumberOfTrades', 'TakerBuyBaseAssetVol',
+                                    'TakerBuyQuoteAssetVol', 'Ignore']
+    df = pd.read_csv(ohlc_trades_data, sep=',', names=ohlc_column_names)
+    # Get a tweak of our data
+    print(df.info())
 
-        # Process aggregated Trades data
-        agg_trades_data_path: str = pwd + '/AggTrades/BTCUSDT-aggTrades-2021-01.csv'
-        # Initialize pandas dataframe in chucks as size is too large (> 5GB)
-        agg_trades_column_names: List[str] = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId',
-                                              'LastTradeId', 'Timestamp', 'Buyer=Maker', 'BestTradPriceMatch']
-        chunk_size: Final[int] = 1000000
-        root_path: str = pwd
-        path: str = os.path.join(root_path, 'AggTrades/DataChunks/BTCUSDT-aggTrades-2021-01')
-        store_data_in_chunks(agg_trades_data_path, agg_trades_column_names, chunk_size, path)
-        return 0
-
-    elif os.name == 'nt':
-        print("You are not working on a Windows machine.")
-        return 0
-    else:
-        print("Only Linus and Windows systems are currently supported.")
-        return 1
+    # Process aggregated Trades data
+    agg_trades_data_path: str = os.path.join(pwd, 'aggTrades', 'BTCUSDT-aggTrades-2021-01.csv')
+    # Initialize pandas dataframe in chucks as size is too large (> 5GB)
+    agg_trades_column_names: List[str] = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId',
+                                          'LastTradeId', 'Timestamp', 'Buyer=Maker', 'BestTradPriceMatch']
+    chunk_size: Final[int] = 1000000
+    root_path: str = pwd
+    path: str = os.path.join(root_path, 'aggTrades', 'dataChunks', 'BTCUSDT-aggTrades-2021-01')
+    # store_data_in_chunks(agg_trades_data_path, agg_trades_column_names, chunk_size, path)
+    return 0
 
 
 # Press the green button in the gutter to run the script.

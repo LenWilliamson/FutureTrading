@@ -6,7 +6,7 @@ class DataTransformer:
 
     def aggregate_data_to_seconds(self) -> None:
         """
-        Aggregates the 'AggTrades' trading data to volume at price
+        Aggregates the 'aggTrades' trading data to volume at price
         :return: None
         """
 
