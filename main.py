@@ -22,7 +22,7 @@ def main():
     pwd: str = os.getcwd()
     print(f'Print working directory {pwd}')
 
-    # On Unix system the data is found in the directory aggTrades
+    # The data is found in the directory aggTrades
     ohlc_trades_data: str = os.path.join(pwd, 'ohlc', 'BTCUSDT-1d-2021-01.csv')
     ohlc_column_names: List[str] = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime',
                                     'QuoteAssetVol', 'NumberOfTrades', 'TakerBuyBaseAssetVol',
@@ -31,7 +31,7 @@ def main():
     # Get a tweak of our data
     print(df.info())
 
-    # Process aggregated Trades data
+    # Process aggregated trades data
     agg_trades_data_path: str = os.path.join(pwd, 'aggTrades', 'BTCUSDT-aggTrades-2021-01.csv')
     # Initialize pandas dataframe in chucks as size is too large (> 5GB)
     agg_trades_column_names: List[str] = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId',
