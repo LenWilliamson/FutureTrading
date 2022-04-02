@@ -1,0 +1,3 @@
+FutureTrading/data/volumeProfile
+
+-> Volume profiles generated from FutureTrading/data/aggTrades data

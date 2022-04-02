@@ -1,45 +1,32 @@
 import os
 import sys
-import pandas as pd
 from typing import List, Final
-
-from util.lib.DataTransformer import DataTransformer
-
-
-def store_data_in_chunks(source_path: str, column_names: List[int], chunk_size: Final[int], path: str) -> int:
-    chunk_no: int = 0
-    for chunk in pd.read_csv(source_path, sep=',', names=column_names, chunksize=chunk_size):
-        dt: DataTransformer = DataTransformer(chunk)
-        dt.save_data(path, chunk_no)
-        chunk_no += 1  # increment chunk number by one
-    return 0
-
+import pandas as pd
+from util.lib.VolumeProfileGenerator import VolumeProfileGenerator
 
 def main():
     # Set working directory to the directory containing the script that was used to invoke the Python interpreter
     os.chdir(sys.path[0])
-    # Display current working direcotry
+    # Display current working directory
     pwd: str = os.getcwd()
     print(f'Print working directory {pwd}')
 
-    # The data is found in the directory aggTrades
-    ohlc_trades_data: str = os.path.join(pwd, 'ohlc', 'BTCUSDT-1d-2021-01.csv')
+    # The data is found in the directory data
+    ohlc_trades_data: str = os.path.join(pwd, 'data', 'ohlc', 'BTCUSDT-1d-2021-01.csv')
     ohlc_column_names: List[str] = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime',
                                     'QuoteAssetVol', 'NumberOfTrades', 'TakerBuyBaseAssetVol',
                                     'TakerBuyQuoteAssetVol', 'Ignore']
     df = pd.read_csv(ohlc_trades_data, sep=',', names=ohlc_column_names)
-    # Get a tweak of our data
-    print(df.info())
+    # print(df.info())
 
     # Process aggregated trades data
-    agg_trades_data_path: str = os.path.join(pwd, 'aggTrades', 'BTCUSDT-aggTrades-2021-01.csv')
+    agg_trades_data_path: str = os.path.join(pwd, 'data', 'aggTrades', 'BTCUSDT-aggTrades-2021-01.csv')
     # Initialize pandas dataframe in chucks as size is too large (> 5GB)
     agg_trades_column_names: List[str] = ['AggTradeId', 'Price', 'Quantity', 'FirstTradeId',
                                           'LastTradeId', 'Timestamp', 'Buyer=Maker', 'BestTradPriceMatch']
     chunk_size: Final[int] = 1000000
-    root_path: str = pwd
-    path: str = os.path.join(root_path, 'aggTrades', 'dataChunks', 'BTCUSDT-aggTrades-2021-01')
-    # store_data_in_chunks(agg_trades_data_path, agg_trades_column_names, chunk_size, path)
+    vpg: VolumeProfileGenerator = VolumeProfileGenerator(agg_trades_data_path,agg_trades_column_names, chunk_size, os.path.join(pwd, 'data', 'volumeProfile'), 'result.csv')
+    vpg.generate_volume_profile()
     return 0
 
 

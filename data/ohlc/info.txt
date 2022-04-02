@@ -1,4 +1,4 @@
-FutureTrading/AggTrades
+FutureTrading/data/ohlc
 
 -> BTCUSDT-1d-2021-01.csv
     - OHLC Data in one day candles for entire January of 2021
