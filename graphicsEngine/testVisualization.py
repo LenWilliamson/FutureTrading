@@ -1,35 +1,33 @@
-from typing import List
-import plotly.graph_objects as go
-import pandas as pd
 import os
+
+import pandas as pd
+import plotly.graph_objects as go
+
+import dataConfig as cfg
 from util.lib.timeConverter import time_converter
 
-ohlc_trades_data: str = os.path.join('/home', 'len', 'FutureTrading', 'data', 'ohlc', 'BTCUSDT-1h-2021-01.csv')
-ohlc_column_names: List[str] = ['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume', 'CloseTime',
-                                    'QuoteAssetVol', 'NumberOfTrades', 'TakerBuyBaseAssetVol',
-                                    'TakerBuyQuoteAssetVol', 'Ignore']
-volume_data: str = os.path.join('/home', 'len', 'FutureTrading', 'data', 'volumeProfile', 'BTCUSDT-aggTrades-2021-01.csv')
-df: pd.DataFrame = pd.read_csv(ohlc_trades_data, sep=',', names=ohlc_column_names)
-volume: pd.DataFrame = pd.read_csv(volume_data, sep=',')
-df['OpenTime'] = df['OpenTime'].map(time_converter)
-volume['Price'] = volume['Price'].map(lambda x: round(x/100)*100)
-
+ohlc_src: str = os.path.join(cfg.OHLC_DP, 'BTCUSDT-1h-2021-01.csv')
+vol_src: str = os.path.join(cfg.VOLP_DP, 'BTCUSDT-aggTrades-2021-01.csv')
+ohlc: pd.DataFrame = pd.read_csv(ohlc_src, sep=',', names=cfg.OHLC_CNL)
+volume: pd.DataFrame = pd.read_csv(vol_src, sep=',')
+ohlc[cfg.OHLC_CN['ots']] = ohlc[cfg.OHLC_CN['ots']].map(time_converter)
+volume[cfg.VOLP_CN['px']] = volume[cfg.VOLP_CN['px']].map(lambda x: round(x / 100) * 100)
 
 fig = go.Figure(
     data=[
         go.Candlestick(
-            x=df['OpenTime'],
-            open=df['Open'],
-            high=df['High'],
-            low=df['Low'],
-            close=df['Close'],
+            x=ohlc[cfg.OHLC_CN['ots']],
+            open=ohlc[cfg.OHLC_CN['open']],
+            high=ohlc[cfg.OHLC_CN['high']],
+            low=ohlc[cfg.OHLC_CN['low']],
+            close=ohlc[cfg.OHLC_CN['close']],
             xaxis='x',
             yaxis='y',
             showlegend=False
         ),
         go.Bar(
-            x=volume['Quantity'],
-            y=volume['Price'],
+            x=volume[cfg.VOLP_CN['qx']],
+            y=volume[cfg.VOLP_CN['px']],
             # base=50,
             orientation='h',
             xaxis='x2',
@@ -69,11 +67,11 @@ fig = go.Figure(
 fig_ohlc = go.Figure(
     data=[
         go.Candlestick(
-            x=df['OpenTime'],
-            open=df['Open'],
-            high=df['High'],
-            low=df['Low'],
-            close=df['Close'],
+            x=ohlc[cfg.OHLC_CN['ots']],
+            open=ohlc[cfg.OHLC_CN['open']],
+            high=ohlc[cfg.OHLC_CN['high']],
+            low=ohlc[cfg.OHLC_CN['low']],
+            close=ohlc[cfg.OHLC_CN['close']],
             xaxis='x',
             yaxis='y',
             showlegend=False
@@ -85,8 +83,8 @@ fig_volume = go.Figure(
     data=[
         go.Bar(
             base=50,
-            x=volume['Price'],
-            y=volume['Quantity'],
+            x=volume[cfg.VOLP_CN['px']],
+            y=volume[cfg.VOLP_CN['qx']],
             orientation='v',
             xaxis='x',
             yaxis='y',
@@ -101,8 +99,8 @@ fig_volume_h = go.Figure(
     data=[
         go.Bar(
             base=50,
-            y=volume['Price'],
-            x=volume['Quantity'],
+            x=volume[cfg.VOLP_CN['px']],
+            y=volume[cfg.VOLP_CN['qx']],
             orientation='h',
             xaxis='x',
             yaxis='y',
@@ -111,8 +109,8 @@ fig_volume_h = go.Figure(
         ),
         go.Bar(
             base=0,
-            y=volume['Price'],
-            x=volume['Quantity'],
+            x=volume[cfg.VOLP_CN['px']],
+            y=volume[cfg.VOLP_CN['qx']],
             orientation='h',
             xaxis='x',
             yaxis='y',
@@ -128,6 +126,6 @@ fig_volume_h = go.Figure(
 )
 
 fig.show()
-#fig_ohlc.show()
-#fig_volume.show()
-#fig_volume_h.show()
+# fig_ohlc.show()
+# fig_volume.show()
+# fig_volume_h.show()

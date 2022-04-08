@@ -1,6 +1,10 @@
 import os
+from functools import partial
+from typing import List, Final, Callable, Any
+
 import pandas as pd
-from typing import List, Final
+import dataConfig as cfg
+from util.functionalLib.functional import foldl
 
 
 def _in_time_interval(row: pd.DataFrame, start_time: int, end_time: int) -> bool:
@@ -11,79 +15,92 @@ def _in_time_interval(row: pd.DataFrame, start_time: int, end_time: int) -> bool
     :param end_time: posix end time
     :return: True if condition is met
     """
-    return start_time <= row['Timestamp'] <= end_time
+    return start_time <= row[cfg.AGTR_CN['ts']] <= end_time
+
+
+def _volume_per_tick(acc: List[pd.DataFrame], chunk: pd.DataFrame, predicate: Callable[[Any], bool] = None):
+    if predicate:
+        chunk['in_interval'] = chunk.apply(predicate, axis=1)
+        chunk = chunk.drop(chunk[~chunk['in_interval']].index)
+    if chunk.empty:
+        return acc
+    else:
+        # Summarize price information
+        chunk[cfg.AGTR_CN['px']] = chunk[cfg.AGTR_CN['px']].map(round)
+        # Sort by price
+        chunk.sort_values(by=[cfg.AGTR_CN['px']], inplace=True)
+        # Accumulate volumes by price and append to list of dataframes
+        # The data frame is collapsed from self.cn to ['Price', 'Quantity']
+        return acc + [chunk.groupby([cfg.AGTR_CN['px']])[cfg.AGTR_CN['qx']].sum().reset_index()]
 
 
 class VolumeProfileGenerator:
-    def __init__(self, data_source: str, column_names: List[str], chunk_size: Final[int], destination_path: str) -> None:
-        self.ds: str = data_source
-        self.cn: List[str] = column_names
+    def __init__(self, data_source: str, column_names: List[str], chunk_size: int, destination_path: str) -> None:
+        self.ds: Final[str] = data_source
+        self.cn: Final[List[str]] = column_names
         self.cs: Final[int] = chunk_size
-        self.dp: str = destination_path
+        self.dp: Final[str] = destination_path
 
-    def generate_volume_profile(self, src_file_name: str, dst_file_name: str) -> None:
+    def gen_volume_profile(self, src_file_name: str, dst_file_name: str) -> None:
         """
         Generates volume profile for given time interval and saves the data
         :param src_file_name: Name of the source file
         :param dst_file_name: Name of the destination file where the result is stored
         :return: None/Void
         """
-        list_of_df: List[pd.DataFrame] = []
-        for chunk in pd.read_csv(filepath_or_buffer=os.path.join(self.ds, src_file_name), sep=',', names=self.cn, chunksize=self.cs):
-            # Step1: Summarize price information
-            chunk['Price'] = chunk['Price'].map(round)
-            # Step2: Sort by price
-            chunk.sort_values(by=['Price'], inplace=True)
-            # Step3: Accumulate volumes by price and append to list of dataframes
-            #        The data frame is collapsed from self.cn to ['Price', 'Quantity']
-            list_of_df.append(chunk.groupby(['Price'])['Quantity'].sum().reset_index())
-
-        # Step4: Merge volume data
-        head, *tail = list_of_df
+        acc: List[pd.DataFrame] = foldl(
+            f=_volume_per_tick,
+            acc=[],
+            xs=pd.read_csv(
+                filepath_or_buffer=os.path.join(self.ds, src_file_name),
+                sep=',',
+                names=self.cn,
+                chunksize=self.cs
+            )
+        )
+        # Merge volume data
+        head, *tail = acc
         if tail:
             merged = head.append(tail, ignore_index=True)
-        grouped = merged.groupby(['Price']).sum().reset_index()
-        # Step5: Store volume data
+            grouped = merged.groupby([cfg.AGTR_CN['px']]).sum().reset_index()
+        else:
+            grouped = head.groupby([cfg.AGTR_CN['px']]).sum().reset_index()
+        # Save volume data to file
         self._save_data(grouped, file_name=dst_file_name)
 
-    def generate_volume_profile_interval(self, src_file_name: str, dst_file_name: str, start_time: int, end_time: int) -> None:
+    def gen_volume_profile_interval(self, src_file: str, dst_file: str, start_time: int, end_time: int) -> None:
         """
         Generates volume profile for given time interval and saves the data
-        :param dst_file_name: Name of the source file
-        :param src_file_name: Name of the destination file where the result is stored
+        :param dst_file: Name of the source file
+        :param src_file: Name of the destination file where the result is stored
         :param start_time: Posix time stamp in milliseconds
         :param end_time: Posix time stamp in milliseconds
         :return: None/Void
         """
-        list_of_df: List[pd.DataFrame] = []
-        for chunk in pd.read_csv(filepath_or_buffer=os.path.join(self.ds, src_file_name), sep=',', names=self.cn, chunksize=self.cs):
-            # Step1: Flag trades within given time interval with True and drop rest
-            chunk['in_interval'] = chunk.apply(_in_time_interval, args=(start_time, end_time), axis=1)
-            chunk = chunk.drop(chunk[~chunk['in_interval']].index)
-            if chunk.empty:
-                # Empty data frame
-                continue
-            else:
-                # Step2: Summarize price information
-                chunk['Price'] = chunk['Price'].map(round)
-                # Step3: Sort by price
-                chunk.sort_values(by=['Price'], inplace=True)
-                # Step4: Accumulate volumes by price and append to list of dataframes
-                #        The data frame is collapsed from self.cn to ['Price', 'Quantity']
-                list_of_df.append(chunk.groupby(['Price'])['Quantity'].sum().reset_index())
-
-        if list_of_df:
-            # Step5: Merge volume data
-            head, *tail = list_of_df
+        pred: Callable[[pd.DataFrame], bool] = partial(_in_time_interval, start_time=start_time, end_time=end_time)
+        func: partial[List[pd.DataFrame], pd.DataFrame] = partial(_volume_per_tick, predicate=pred)
+        acc: List[pd.DataFrame] = foldl(
+            f=func,
+            acc=[],
+            xs=pd.read_csv(
+                filepath_or_buffer=os.path.join(self.ds, src_file),
+                sep=',',
+                names=self.cn,
+                chunksize=self.cs
+            )
+        )
+        if acc:
+            # Merge volume data
+            head, *tail = acc
             if tail:
                 merged = head.append(tail, ignore_index=True)
-            grouped = merged.groupby(['Price']).sum().reset_index()
-            # Step6: Store volume data
-            self._save_data(grouped, file_name=dst_file_name)
+                grouped = merged.groupby([cfg.AGTR_CN['px']]).sum().reset_index()
+            else:
+                grouped = head.groupby([cfg.AGTR_CN['px']]).sum().reset_index()
+            # Save volume data to file
+            self._save_data(grouped, file_name=dst_file)
         else:
             print(f'start time: {start_time} and end time: {end_time} are out of range.')
 
     def _save_data(self, df: pd.DataFrame, file_name: str) -> None:
         df.to_csv(os.path.join(self.dp, file_name), index=False)
-
-
