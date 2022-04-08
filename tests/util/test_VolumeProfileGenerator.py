@@ -26,7 +26,7 @@ class TestVolumeProfileGenerator(TestCase):
     # def tearDownClass(cls) -> None:
     #     print('tearDownClass')
 
-    def test_generate_volume_profile(self):
+    def test_gen_volume_profile(self):
         src: str = 'td1.csv'
         out: str = 'test_td1.csv'
         self.vpg.gen_volume_profile(src_file_name=src, dst_file_name=out)
@@ -34,7 +34,7 @@ class TestVolumeProfileGenerator(TestCase):
         test: str = os.path.join(cfg.tVOLP_DP, out)
         self.assertEqual(True, filecmp.cmp(test, target, shallow=True))
 
-    def test_generate_volume_profile_interval(self):
+    def test_gen_volume_profile_interval(self):
         list_of_time_stamps: List[Tuple[datetime.datetime, datetime.datetime]] = \
             [(dt.datetime(2021, 1, 1, 1), dt.datetime(2021, 1, 1, 1, 59, 59)),
              (dt.datetime(2021, 1, 1, 2), dt.datetime(2021, 1, 1, 2, 59, 59)),
