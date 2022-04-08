@@ -19,6 +19,14 @@ def _in_time_interval(row: pd.DataFrame, start_time: int, end_time: int) -> bool
 
 
 def _volume_per_tick(acc: List[pd.DataFrame], chunk: pd.DataFrame, predicate: Callable[[Any], bool] = None):
+    """
+    Computes the traded volume per price tick per unit.
+    Example: Unit = USDT => 4000.5USDT are summarized to 4001USDT and so on
+    :param acc: Resulting list of data frames with volume per tick
+    :param chunk: Data frame to process
+    :param predicate: If set, one can filter the data frame
+    :return: acc
+    """
     if predicate:
         chunk['in_interval'] = chunk.apply(predicate, axis=1)
         chunk = chunk.drop(chunk[~chunk['in_interval']].index)
