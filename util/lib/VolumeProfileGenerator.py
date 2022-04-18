@@ -5,6 +5,7 @@ from typing import List, Final, Callable, Any
 import pandas as pd
 import dataConfig as cfg
 from util.functionalLib.functional import foldl
+from util.lib.timeConverter import time_converter
 
 
 def _in_time_interval(row: pd.DataFrame, start_time: int, end_time: int) -> bool:
@@ -106,6 +107,7 @@ class VolumeProfileGenerator:
             else:
                 grouped = head.groupby([cfg.AGTR_CN['px']]).sum().reset_index()
             # Save volume data to file
+            dst_file = dst_file[:-4] + '__' + time_converter(start_time) + '__' + time_converter(end_time) + '.csv'
             self._save_data(grouped, file_name=dst_file)
         else:
             print(f'start time: {start_time} and end time: {end_time} are out of range.')

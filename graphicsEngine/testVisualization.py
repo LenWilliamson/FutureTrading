@@ -1,4 +1,5 @@
 import os
+from functools import partial
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -10,7 +11,7 @@ ohlc_src: str = os.path.join(cfg.OHLC_DP, 'BTCUSDT-1h-2021-01.csv')
 vol_src: str = os.path.join(cfg.VOLP_DP, 'BTCUSDT-aggTrades-2021-01.csv')
 ohlc: pd.DataFrame = pd.read_csv(ohlc_src, sep=',', names=cfg.OHLC_CNL)
 volume: pd.DataFrame = pd.read_csv(vol_src, sep=',')
-ohlc[cfg.OHLC_CN['ots']] = ohlc[cfg.OHLC_CN['ots']].map(time_converter)
+ohlc[cfg.OHLC_CN['ots']] = ohlc[cfg.OHLC_CN['ots']].map(partial(time_converter, blank=True))
 volume[cfg.VOLP_CN['px']] = volume[cfg.VOLP_CN['px']].map(lambda x: round(x / 100) * 100)
 
 fig = go.Figure(
