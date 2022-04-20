@@ -28,3 +28,11 @@ if __name__ == '__main__':
     sys.exit(main())
 
 # See Pandas Intro for quick info https://github.com/efldatascience/ds-courses
+
+"""
+TODOS:
+ - Error Handling
+ - Logging
+ - Ordnerstruktur anpassen wenn Binance die Daten lädt und automatisiert alle Daten laden
+ - Rust Projekt erstellen fürs Backtesting
+"""

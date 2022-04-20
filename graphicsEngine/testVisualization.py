@@ -27,9 +27,9 @@ fig = go.Figure(
             showlegend=False
         ),
         go.Bar(
+            base=0,
             x=volume[cfg.VOLP_CN['qx']],
             y=volume[cfg.VOLP_CN['px']],
-            # base=50,
             orientation='h',
             xaxis='x2',
             yaxis='y2',
@@ -38,7 +38,7 @@ fig = go.Figure(
         )
     ],
     layout=go.Layout(
-        title=go.layout.Title(text='Candlestick with Volume Profile from 2021-01'),
+        title=go.layout.Title(text='BTC/USDT candlestick with Volume Profile from 2021-01'),
         xaxis=go.layout.XAxis(
             side='bottom',
             title='Date',
@@ -59,7 +59,6 @@ fig = go.Figure(
         yaxis2=go.layout.YAxis(
             showticklabels=False,
             side='right',
-            # title='Price',
             matches='y'
         )
     )
@@ -83,7 +82,7 @@ fig_ohlc = go.Figure(
 fig_volume = go.Figure(
     data=[
         go.Bar(
-            base=50,
+            base=0,
             x=volume[cfg.VOLP_CN['px']],
             y=volume[cfg.VOLP_CN['qx']],
             orientation='v',
@@ -98,20 +97,20 @@ fig_volume = go.Figure(
 
 fig_volume_h = go.Figure(
     data=[
-        go.Bar(
-            base=50,
-            x=volume[cfg.VOLP_CN['px']],
-            y=volume[cfg.VOLP_CN['qx']],
-            orientation='h',
-            xaxis='x',
-            yaxis='y',
-            showlegend=False,
-            marker=go.bar.Marker(color='#000')
-        ),
+        # go.Bar(
+        #     base=50,
+        #     x=volume[cfg.VOLP_CN['px']],
+        #     y=volume[cfg.VOLP_CN['qx']],
+        #     orientation='h',
+        #     xaxis='x',
+        #     yaxis='y',
+        #     showlegend=False,
+        #     marker=go.bar.Marker(color='#000')
+        # ),
         go.Bar(
             base=0,
-            x=volume[cfg.VOLP_CN['px']],
-            y=volume[cfg.VOLP_CN['qx']],
+            x=volume[cfg.VOLP_CN['qx']],
+            y=volume[cfg.VOLP_CN['px']],
             orientation='h',
             xaxis='x',
             yaxis='y',
@@ -128,5 +127,5 @@ fig_volume_h = go.Figure(
 
 fig.show()
 # fig_ohlc.show()
-# fig_volume.show()
-# fig_volume_h.show()
+fig_volume.show()
+fig_volume_h.show()
