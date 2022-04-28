@@ -1,4 +1,5 @@
 import os
+import sys
 from functools import partial
 from typing import List, Final, Callable, Any
 
@@ -8,15 +9,15 @@ from util.functionalLib.functional import foldl
 from util.lib.timeConverter import time_converter
 
 
-def _in_time_interval(row: pd.DataFrame, start_time: int, end_time: int) -> bool:
+def _in_time_interval(row: pd.DataFrame, start_time: float, end_time: float) -> bool:
     """
-    Checks if the timestamp of the current row is in the given interval
+    Checks if the timestamp of the current row [in milliseconds] is in the given interval
     :param row: Current row of the data frame
     :param start_time: posix start time
     :param end_time: posix end time
     :return: True if condition is met
     """
-    return start_time <= row[cfg.AGTR_CN['ts']] <= end_time
+    return start_time <= row[cfg.AGTR_CN['ts']] / 1000 < end_time
 
 
 def _volume_per_tick(acc: List[pd.DataFrame], chunk: pd.DataFrame, predicate: Callable[[Any], bool] = None):
@@ -57,6 +58,8 @@ class VolumeProfileGenerator:
         :param dst_file_name: Name of the destination file where the result is stored
         :return: None/Void
         """
+        cfg.LOGGER.debug(
+            f'{sys.argv[0]} :: CALL :: VolumeProfileGenerator.gen_volume_profile({src_file_name}, {dst_file_name})')
         acc: List[pd.DataFrame] = foldl(
             f=_volume_per_tick,
             acc=[],
@@ -77,7 +80,7 @@ class VolumeProfileGenerator:
         # Save volume data to file
         self._save_data(grouped, file_name=dst_file_name)
 
-    def gen_volume_profile_interval(self, src_file: str, dst_file: str, start_time: int, end_time: int) -> None:
+    def gen_volume_profile_interval(self, src_file: str, dst_file: str, start_time: float, end_time: float) -> None:
         """
         Generates volume profile for given time interval and saves the data
         :param dst_file: Name of the source file
@@ -86,6 +89,8 @@ class VolumeProfileGenerator:
         :param end_time: Posix time stamp in milliseconds
         :return: None/Void
         """
+        cfg.LOGGER.debug(
+            f'{sys.argv[0]} :: CALL :: VolumeProfileGenerator.gen_volume_profile_interval({src_file}, {dst_file}, {start_time}, {end_time})')
         pred: Callable[[pd.DataFrame], bool] = partial(_in_time_interval, start_time=start_time, end_time=end_time)
         func: partial[List[pd.DataFrame], pd.DataFrame] = partial(_volume_per_tick, predicate=pred)
         acc: List[pd.DataFrame] = foldl(
@@ -110,7 +115,8 @@ class VolumeProfileGenerator:
             dst_file = dst_file[:-4] + '__' + time_converter(start_time) + '__' + time_converter(end_time) + '.csv'
             self._save_data(grouped, file_name=dst_file)
         else:
-            print(f'start time: {start_time} and end time: {end_time} are out of range.')
+            raise ValueError(f'start time: {start_time} and end time: {end_time} are out of range.')
 
     def _save_data(self, df: pd.DataFrame, file_name: str) -> None:
+        cfg.LOGGER.debug(f'{sys.argv[0]} :: CALL :: VolumeProfileGenerator._save_data(pd.DataFrame, {file_name})')
         df.to_csv(os.path.join(self.dp, file_name), index=False)

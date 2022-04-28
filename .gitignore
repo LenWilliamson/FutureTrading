@@ -1,3 +1,4 @@
 vcs.xml
 *.csv
+*.log
 !tests/testData/**

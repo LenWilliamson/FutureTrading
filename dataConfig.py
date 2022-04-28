@@ -1,6 +1,9 @@
 # Configuration file for data
 import os
+import sys
 from typing import Final, Dict, List
+import logging.config
+import datetime as dt
 
 # Set working directory to the directory containing the script that was used to invoke the Python interpreter
 # os.chdir(sys.path[0])
@@ -57,5 +60,7 @@ VOLP_CN: Final[Dict[str, str]] = {
     'qx': 'Quantity'
 }
 
-
-
+# Logging
+filename: str = dt.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+logging.config.fileConfig('/home/len/FutureTrading/logFiles/logging.conf', defaults={'logfilename': f'/home/len/FutureTrading/logFiles/logs/{filename}.log'})
+LOGGER = logging.getLogger('root')
