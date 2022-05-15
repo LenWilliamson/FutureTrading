@@ -19,3 +19,7 @@ Examples:
 -> BTCUSDT-30m-2021-01-01_2021-01-02.csv
     - OHLC Data in 30min candles for one day -startDate 2021-01-01 -endDate 2021-01-02
     - Command: python3 download-kline.py -s BTCUSDT -startDate 2021-01-01 -endDate 2021-01-02 -t spot -i 30m -folder /home/len/FutureTrading/data/ohlc
+
+    - Link: BASE_URL = 'https://data.binance.vision/'
+
+-> External Hard Drive for storage

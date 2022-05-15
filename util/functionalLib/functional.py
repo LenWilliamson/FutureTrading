@@ -2,6 +2,8 @@
 # https://book.pythontips.com/en/latest/map_filter.html
 
 import functools
+from collections import Callable
+from typing import Any
 
 
 def foldl(f, acc, xs):
@@ -15,3 +17,22 @@ def foldl(f, acc, xs):
     :return: (a -> b -> a) -> a -> [b] -> a
     """
     return functools.reduce(f, xs, acc)
+
+
+def compose(*functions):
+    """
+    Composes a list of functions that have exactly one parameter as argument
+    :param functions: Iterable of functions
+    :return: composed function
+    """
+    return foldl(lambda f, g: lambda x: f(g(x)), lambda x: x, functions)
+
+
+def append(acc, x):
+    """
+    Adds element to tail
+    :param acc: List
+    :param x: Element
+    :return: A new list with x appended to its tail
+    """
+    return acc + [x]

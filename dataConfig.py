@@ -9,16 +9,22 @@ import datetime as dt
 # os.chdir(sys.path[0])
 # Absolute path of repository
 CWD: Final[str] = '/home/len/FutureTrading'
+# External Data Source
+EDS: Final[str] = '/media/len/ExterneFestplateLenCewa/DataBase'
 
-# Data paths to directories
-OHLC_DP: Final[str] = os.path.join(CWD, 'data', 'ohlc')
-AGTR_DP: Final[str] = os.path.join(CWD, 'data', 'aggTrades')
-VOLP_DP: Final[str] = os.path.join(CWD, 'data', 'volumeProfile')
+# Data paths to directories (external drive): /media/len/ExterneFestplateLenCewa/DataBase
+OHLC_DP: Final[str] = os.path.join(EDS, 'data', 'ohlc')
+AGTR_DP: Final[str] = os.path.join(EDS, 'data', 'aggTrades')
+VOLP_DP: Final[str] = os.path.join(EDS, 'data', 'volumeProfile')
 
 # Data paths to test directories
 tOHLC_DP: Final[str] = os.path.join(CWD, 'tests', 'testData', 'ohlc')
 tAGTR_DP: Final[str] = os.path.join(CWD, 'tests', 'testData', 'aggTrades')
 tVOLP_DP: Final[str] = os.path.join(CWD, 'tests', 'testData', 'volumeProfile')
+
+# Data paths to test batch directories
+tAGTR_bDP: Final[str] = os.path.join(CWD, 'tests', 'testData', 'batch', 'aggTrades')
+tVOLP_bDP: Final[str] = os.path.join(CWD, 'tests', 'testData', 'batch', 'volumeProfile')
 
 # Column names. These list should only be used for initialization of data frames. Use the corresponding dicts
 OHLC_CNL: Final[List[str]] = [

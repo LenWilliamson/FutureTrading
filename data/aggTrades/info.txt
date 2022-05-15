@@ -4,3 +4,6 @@ FutureTrading/data/aggTrades
     - Agg trades for entire January of 2021
     - 65179182 rows
     - Command: python3 download-aggTrade.py -s BTCUSDT -startDate 2021-01-01 -endDate 2021-01-31 -t spot -folder '/home/len/FutureTrading/data/aggTrades'
+    - Link: BASE_URL = 'https://data.binance.vision/'
+
+-> External Hard Drive for storage

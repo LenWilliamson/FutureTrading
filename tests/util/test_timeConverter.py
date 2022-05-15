@@ -1,5 +1,5 @@
 from unittest import TestCase
-from util.lib.timeConverter import  time_converter
+from util.lib.timeConverter import time_converter
 
 
 class TestTimeConverter(TestCase):
