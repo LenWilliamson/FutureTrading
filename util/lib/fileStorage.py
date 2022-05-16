@@ -34,12 +34,15 @@ def create_dirs(full_path: str) -> None:
 
 def save_data(df: pd.DataFrame, dst_dir: str, file_name: str, sub_dirs: List[str] = None) -> None:
     """
-    Todo Testen und Beschreibung and undefined behaviour if we pass [] as sub_dirs
-    :param df:
-    :param dst_dir:
-    :param file_name:
-    :param sub_dirs: Note: if sub_dirs = [''] => does the same as sub_dirs = None
-    :return:
+    Stores DataFrame in given destination directory inside the passed subdirectory
+    :param df: DataFrame to be stored
+    :param dst_dir: Destination directory
+    :param file_name: Filename
+    :param sub_dirs: Subdirectories where data should be stored. If nonexistent they will be created automatically
+        Notes:
+         - if sub_dirs = [''] => does the same as sub_dirs = None
+         - undefined behaviour if sub_dirs = []
+    :return: None/Void
     """
     if sub_dirs:
         full_path: str = foldl(join_path, dst_dir, sub_dirs)
@@ -51,19 +54,19 @@ def save_data(df: pd.DataFrame, dst_dir: str, file_name: str, sub_dirs: List[str
 
 def join_path(current_path: str, sub_dir: str) -> str:
     """
-    TODO Testen und Beschreibung
-    :param current_path:
-    :param sub_dir:
-    :return:
+    Joins to paths
+    :param current_path: Parent path
+    :param sub_dir: Subdirectory of parent
+    :return:New path containing current_path as root and sub_dir as subdirectory
     """
     return os.path.join(current_path, sub_dir)
 
 
 def walk_dirs(root: str) -> None:
     """
-    TODO
-    :param root:
-    :return:
+    Walks through every directory in root recursively and prints directories and filenames
+    :param root:Root directory we want to walsk through
+    :return: None/Void
     """
     for root, subdirs, files in os.walk(root):
         print(f'--\nroot = {root}')
@@ -78,10 +81,10 @@ def walk_dirs(root: str) -> None:
 
 def find_files_recursive(root: str, ends_with: str) -> List[str]:
     """
-    TODO
-    :param root:
-    :param ends_with:
-    :return:
+    Finds all files with given file ending in root directory and all its subdirectories
+    :param root: Path to root folder
+    :param ends_with: File extension of files we want to filter
+    :return: List of all files in root directory and subdirectories with given file ending
     """
     result: List[str] = []
     for _, _, files in os.walk(root):

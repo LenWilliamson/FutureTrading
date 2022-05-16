@@ -9,7 +9,6 @@ from dateutil.relativedelta import relativedelta
 
 import dataConfig as cfg
 from util.lib.VolumeProfileGenerator import VolumeProfileGenerator
-from util.lib.fileStorage import create_filename
 from util.lib.timeConverter import time_converter, date_time_generator
 
 
@@ -25,17 +24,6 @@ class BatchProcessor:
     @abstractmethod
     def process_batch(self, interval: int, offset: str, test: bool = False) -> None:
         raise NotImplementedError('Subclasses should implement this!')
-
-
-def _out_files(file: str, ts: List[Tuple[dt.datetime, dt.datetime]]) -> List[str]:
-    """
-    TODO
-    :param file:
-    :param ts:
-    :return:
-    """
-    f: Callable[[Tuple[dt.datetime, dt.datetime]], str] = partial(create_filename, file=file)
-    return list(map(f, ts))
 
 
 class VolumeBatchProcessor(BatchProcessor):
@@ -57,18 +45,14 @@ class VolumeBatchProcessor(BatchProcessor):
 
     def process_batch(self, interval: Dict[str, int], offset: str, test: bool = False) -> None:
         """
-        TODO -> Es werden aktuell nur die Typen für interval akzeptiert wie sie im "Example" stehen
-            start = time.perf_counter()
-            finish = time.perf_counter()
-            print(f'Finished in {round(finish-start, 2)} second(s)')
-            Erkläre -1/10**6, da ich ja immer abgeschlossenes bis offenes Intervall haben möchte
-        :param offset: If we process an aggTrades batch the offset is 'BTCUSDT-aggTrades-'
+        Processes batch of .csv files that contains aggregated trades of exactly one month.
         :param interval: Time interval in hours that should be filtered
-            Example:
-                ['hours',3] = three hours
-                ['days',2] = two days
-                ['weeks',1] = one week
-        :param test:
+            Possible arguments for integer n > 0:
+                ['hours',n] = n hours
+                ['days',n] = n days
+                ['weeks',n] = n week
+        :param offset: If we process an aggTrades batch the offset is 'BTCUSDT-aggTrades-'
+        :param test: If we call the function from test we prepend 'test_' to filename
         :return: None/Void
         """
         cfg.LOGGER.debug(
@@ -82,15 +66,22 @@ class VolumeBatchProcessor(BatchProcessor):
             )
         )
 
-        f: Callable[[str], None] = partial(self.process_file, interval=interval, offset=offset, test=test)
+        f: Callable[[str], None] = partial(self._process_file, interval=interval, offset=offset, test=test)
         map(f, filenames)
 
+    def _process_file(self, file: str, interval: Dict[str, int], offset: str, test: bool = False) -> None:
         """
-        Wenn alle Tests geschrieben sind:
-        4. Logging und Multiprocessing (Erstmal das Loggen auskommentieren) -> Logging schreibt nicht in Datei?
+        Processes a single ..csv file that contains aggregated trades of exactly one month.
+        :param file: .csv file we want to process
+        :param interval: Time interval in hours that should be filtered
+            Possible arguments for integer n > 0:
+                ['hours',n] = n hours
+                ['days',n] = n days
+                ['weeks',n] = n week
+        :param offset: If we process an aggTrades batch the offset is 'BTCUSDT-aggTrades-'
+        :param test: If we call the function from test we prepend 'test_' to filename
+        :return: None/Void
         """
-
-    def process_file(self, file: str, interval: Dict[str, int], offset: str, test: bool = False) -> None:
         open_dt: dt.datetime = dt.datetime.strptime(file[len(offset):-4], '%Y-%m')
         # Assumption: Aggregated trades data has a relative delta of exactly one month
         end_dt: dt.datetime = open_dt + relativedelta(months=1)

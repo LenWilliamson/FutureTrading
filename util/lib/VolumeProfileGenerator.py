@@ -71,7 +71,7 @@ class VolumeProfileGenerator:
         Generates volume profile for given time interval and saves the data
         :param src_file_name: Name of the source file
         :param dst_file_name: Name of the destination file where the result is stored
-        :param sub_dirs: TODO
+        :param sub_dirs: Subdirectories where data should be stored. If nonexistent they will be created automatically
         :return: None/Void
         """
         cfg.LOGGER.debug(
@@ -103,7 +103,7 @@ class VolumeProfileGenerator:
         :param dst_file: Name of the destination file where the result is stored
         :param start_time: Posix time stamp in milliseconds
         :param end_time: Posix time stamp in milliseconds
-        :param sub_dirs: TODO
+        :param sub_dirs: Subdirectories where data should be stored. If nonexistent they will be created automatically
         :return: None/Void
         """
         # cfg.LOGGER.debug(
@@ -136,11 +136,11 @@ class VolumeProfileGenerator:
 
     def _save_data(self, df: pd.DataFrame, file_name: str, sub_dirs: List[str] = None) -> None:
         """
-        TODO
-        :param df:
-        :param file_name:
-        :param sub_dirs:
-        :return:
+        Stores dataframe to file
+        :param df: Pandas DataFrame
+        :param file_name: Name of File
+        :param sub_dirs: Subdirectories where data should be stored. If nonexistent they will be created automatically
+        :return: None/Void
         """
         # cfg.LOGGER.debug(f'{sys.argv[0]} :: CALL :: VolumeProfileGenerator._save_data(pd.DataFrame, {file_name})')
         save_data(df=df, dst_dir=self.dstp, file_name=file_name, sub_dirs=sub_dirs)

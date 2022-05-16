@@ -35,6 +35,6 @@ def append(acc, x):
     Adds element to tail
     :param acc: List
     :param x: Element
-    :return: A new list with x appended to its tail
+    :return: [a] -> a -> [a] ++ [a]
     """
     return acc + [x]
