@@ -67,7 +67,8 @@ class VolumeBatchProcessor(BatchProcessor):
         )
 
         f: Callable[[str], None] = partial(self._process_file, interval=interval, offset=offset, test=test)
-        map(f, filenames)
+        for _ in map(f, filenames):
+            pass
 
     def _process_file(self, file: str, interval: Dict[str, int], offset: str, test: bool = False) -> None:
         """
@@ -114,5 +115,3 @@ class VolumeBatchProcessor(BatchProcessor):
         with concurrent.futures.ProcessPoolExecutor() as executor:
             executor.map(self.vpg.gen_volume_profile_interval, *args)
 
-    def _add_path(self, filename: str) -> str:
-        return self.bd_str + filename
