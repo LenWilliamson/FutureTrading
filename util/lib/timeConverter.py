@@ -22,7 +22,6 @@ def time_converter(time_stamp: float, blank: bool = False) -> str:
 
 def date_time_generator(start: dt.datetime, end: dt.datetime, delta: dt.timedelta) -> Generator[dt.datetime, None, None]:
     """
-    TODO Testen
     Creates a generator of datetime objects within start and end time separated by exactly delta.
     Note:   When you call a function that contains a yield statement anywhere, you get a generator object,
             but no code runs. Then each time you extract an object from the generator, Python executes code

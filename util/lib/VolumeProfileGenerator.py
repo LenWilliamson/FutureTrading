@@ -109,7 +109,7 @@ class VolumeProfileGenerator:
         # cfg.LOGGER.debug(
         #     f'{sys.argv[0]} :: CALL :: VolumeProfileGenerator.gen_volume_profile_interval({src_file}, {dst_file}, {start_time}, {end_time})')
         pred: Callable[[pd.DataFrame], bool] = partial(_in_time_interval, start_time=start_time, end_time=end_time)
-        func: partial[List[pd.DataFrame], pd.DataFrame] = partial(_volume_per_tick, predicate=pred)
+        func: Callable[[List[pd.DataFrame], pd.DataFrame], List[pd.DataFrame]] = partial(_volume_per_tick, predicate=pred)
         acc: List[pd.DataFrame] = foldl(
             f=func,
             acc=[],

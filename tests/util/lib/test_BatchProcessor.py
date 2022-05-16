@@ -1,4 +1,3 @@
-import filecmp
 from itertools import filterfalse
 from typing import Dict, Callable, Any
 
@@ -24,12 +23,19 @@ class TestVolumeBatchProcessor(TestCase):
         print('setUpClass')
         cls.vbp: VolumeBatchProcessor = VolumeBatchProcessor(cfg.tAGTR_bDP, cfg.AGTR_CNL, cls.chunk_size, cfg.tVOLP_bDP)
 
-    def test_process_batch(self):
+    def test_process_batch(self) -> None:
         """
-        Es reicht die Dateinamen zu testen in den Ordnerstrukturen, denn die Berechnungen der Volumenprofile sind korrekt,
+        Test to check if the test files are generated correctly:
+         - we only check for file names, the VolumeProfileGenerator is tested differently
+         - we check for every interval:
+            - weeks
+            - days
+            - hours
         aufgrund der anderen Tests.
-        :return:
+        :return: None/Void
         """
+
+        # Test for weeks
         interval: Dict[str, int] = {'weeks': 1}
         offset: str = 'BTCUSDT-aggTrades-'
         self.vbp.process_batch(interval=interval, offset=offset, test=True)
@@ -46,4 +52,3 @@ class TestVolumeBatchProcessor(TestCase):
         for trgt, tst in zip(target, test):
             with self.subTest(msg=test):
                 self.assertEqual(trgt, tst[5:])
-

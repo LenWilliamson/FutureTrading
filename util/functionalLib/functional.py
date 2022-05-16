@@ -21,6 +21,7 @@ def foldl(f, acc, xs):
 
 def compose(*functions):
     """
+    (b -> c) -> (a -> b) -> a -> c
     Composes a list of functions that have exactly one parameter as argument
     :param functions: Iterable of functions
     :return: composed function
@@ -30,6 +31,7 @@ def compose(*functions):
 
 def append(acc, x):
     """
+    [a] -> a -> [a] ++ [a]
     Adds element to tail
     :param acc: List
     :param x: Element
