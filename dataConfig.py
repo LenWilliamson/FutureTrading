@@ -43,7 +43,7 @@ OHLC_CN: Final[Dict[str, str]] = {
     'high': 'High',
     'low': 'Low',
     'close': 'Close',
-    'vol_src': 'Volume',
+    'vol': 'Volume',
     'cts': 'CloseTime',
     'qav': 'QuoteAssetVol',
     'not': 'NumberOfTrades',
