@@ -14,9 +14,9 @@ def time_converter(time_stamp: float, blank: bool = False) -> str:
     :return: %Y-%m-%d_%H:%M:%S
     """
     if blank:
-        date_time: str = dt.datetime.fromtimestamp(time_stamp).strftime('%Y-%m-%d %H:%M:%S')
+        date_time: str = dt.datetime.fromtimestamp(time_stamp).strftime('%Y-%m-%d %H-%M-%S')
     else:
-        date_time: str = dt.datetime.fromtimestamp(time_stamp).strftime("%Y-%m-%d_%H:%M:%S")
+        date_time: str = dt.datetime.fromtimestamp(time_stamp).strftime("%Y-%m-%d_%H-%M-%S")
     return date_time
 
 

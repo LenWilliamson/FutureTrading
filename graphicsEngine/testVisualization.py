@@ -7,8 +7,8 @@ from util.functionalLib.functional import compose
 import dataConfig as cfg
 from util.lib.timeConverter import time_converter
 
-ohlc_src: str = os.path.join(cfg.OHLC_DP, 'BTCUSDT-1h-2021-01.csv')
-vol_src: str = os.path.join(cfg.VOLP_DP, '_BTCUSDT-aggTrades-2021-01.csv')
+ohlc_src: str = os.path.join(cfg.OHLC_DP, 'BTCUSDT-1h-2022-01_01_-_2022-01-08.csv')
+vol_src: str = os.path.join(cfg.VOLP_DP, 'BTCUSDT-aggTrades-2022-01__2022-01-03_00-00-00__2022-01-06_00-00-00.csv')
 ohlc: pd.DataFrame = pd.read_csv(ohlc_src, sep=',', names=cfg.OHLC_CNL)
 volume: pd.DataFrame = pd.read_csv(vol_src, sep=',')
 ohlc[cfg.OHLC_CN['ots']] = ohlc[cfg.OHLC_CN['ots']].map(compose(partial(time_converter, blank=True), lambda x: x / 1000))
