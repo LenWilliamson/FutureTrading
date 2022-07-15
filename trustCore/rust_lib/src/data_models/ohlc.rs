@@ -1,4 +1,8 @@
 use serde::Deserialize;
+use crate::data_models::market_profile;
+use crate::data_models::Csv;
+use std::error::Error;
+
 #[derive(Debug, Deserialize)]
 pub struct OhlcCsvRecord {
     ots: u64,    // OpenTime
@@ -16,6 +20,22 @@ pub struct OhlcCsvRecord {
 }
 #[derive(Debug, Deserialize)]
 pub struct OhlcData {
-    time_interval: (u64, u64),
-    records: Vec<OhlcCsvRecord>,
+    pub time_interval: (u64, u64),
+    pub records: Vec<OhlcCsvRecord>,
+}
+
+impl OhlcData {
+    pub fn read_from_path(path: &str) -> Result<OhlcData, Box<dyn Error>> {
+        let mut ohlc_data = OhlcData {
+            time_interval: (0, 0),
+            records: Vec::new(),
+        };
+
+        let mut rdr = csv::ReaderBuilder::new().from_path(path)?;
+        for result in rdr.deserialize() {
+            let record: OhlcCsvRecord = result?;
+            ohlc_data.records.push(record);
+        }
+        Ok(ohlc_data)
+    }
 }

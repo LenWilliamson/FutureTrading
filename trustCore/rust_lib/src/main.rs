@@ -1,43 +1,56 @@
-/**
- * Links:
- *  - https://doc.rust-lang.org/book/ch10-00-generics.html
- *  - https://rust-lang.github.io/api-guidelines/checklist.html
- *  - https://doc.rust-lang.org/rust-by-example/primitives/array.html
- */
-
-use std::error::Error;
-use std::process;
-
 use chrono::prelude::*;
-
+use std::process;
 mod data_models;
 pub use crate::data_models::ohlc;
+use substring::Substring;
 
-fn example() -> Result<Vec<ohlc::OhlcCsvRecord>, Box<dyn Error>> {
-    let mut records: Vec<ohlc::OhlcCsvRecord> = Vec::new();
-    // let mut rdr = csv::ReaderBuilder::new().from_path("./td1.csv")?;
-    let mut rdr = csv::ReaderBuilder::new().from_path("./BTCUSDT-1h-2022-07-11.csv")?;
-    for result in rdr.deserialize() {
-        let record: ohlc::OhlcCsvRecord = result?;
-        records.push(record);
-    }
-    Ok(records)
+static OFFSET: usize = "BTCUSDT-aggTrades-2000-01".len();
+static TIME_STANDARD: usize = "YYYY-MM-DD_HH:MM:SS".len();
+static SEPERATOR: usize = "__".len();
+
+#[derive(Debug)]
+struct TimeObject {
+    start: String,
+    start_ts: i64,
+    end: String,
+    end_ts: i64,
+}
+
+use chrono::format::ParseResult;
+fn csv_file_name_decomposer(csv_file: &str) -> ParseResult<TimeObject> {
+    let start = csv_file
+        .substring(OFFSET + SEPERATOR, OFFSET + SEPERATOR + TIME_STANDARD)
+        .to_string();
+    let start_ts = Local
+        .datetime_from_str(&start, "%Y-%m-%d_%H:%M:%S")?
+        .timestamp();
+    let end = csv_file
+        .substring(
+            OFFSET + SEPERATOR + TIME_STANDARD + SEPERATOR,
+            OFFSET + SEPERATOR + TIME_STANDARD + SEPERATOR + TIME_STANDARD,
+        )
+        .to_string();
+    let end_ts = Local
+        .datetime_from_str(&end, "%Y-%m-%d_%H:%M:%S")?
+        .timestamp();
+
+    Ok(TimeObject {
+        start,
+        start_ts,
+        end,
+        end_ts,
+    })
 }
 
 fn main() {
-    match example() {
-        Ok(v) => println!("recors size = {:?}: {:?}", v.len(), v),
-        Err(e) => {
-            println!("error running example: {}", e);
-            process::exit(1);
-        }
-    }
-    let utc: DateTime<Local> = Local::now();
-    let ts = utc.timestamp_millis();
-    match Utc.datetime_from_str("2022-07-01 00:00:00", "%Y-%m-%d %H:%M:%S") {
-        Ok(v) => println!("{:?}", v.timestamp()),
-        Err(e) => println!("error")
-    }
-    println!("{:?} {:?}", utc.format("%Y-%m-%d %H:%M:%S").to_string(), ts);
-    
+    // match ohlc::OhlcData::read_from_path("./BTCUSDT-1h-2022-07-11.csv") {
+    //     Ok(v) => println!("recors size = {:?}: {:?}", v.records.len(), v),
+    //     Err(e) => {
+    //         println!("error running example: {}", e);
+    //         process::exit(1);
+    //     }
+    // }
+    let s = "BTCUSDT-aggTrades-2000-01__2000-01-29_00:00:00__2000-02-01_00:00:00.csv";
+    let x = csv_file_name_decomposer(s);
+    println!("{:?}", x);
 }
