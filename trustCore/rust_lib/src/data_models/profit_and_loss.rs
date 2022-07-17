@@ -1,4 +1,6 @@
 use serde::Deserialize;
+
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct ProfitAndLossCsvRecord {
     ots: u64, // OpenTime

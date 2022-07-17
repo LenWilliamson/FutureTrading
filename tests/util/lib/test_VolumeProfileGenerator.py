@@ -35,6 +35,7 @@ class TestVolumeProfileGenerator(TestCase):
         self.assertEqual(True, filecmp.cmp(test, target, shallow=True))
 
     def test_gen_volume_profile_interval(self):
+        # Time interval is [start, end). Therefore, write dt.datetime(2021, 1, 1, 2, 0, 0, 0), because we check "< end"
         list_of_time_stamps: List[Tuple[dt.datetime, dt.datetime]] = \
             [(dt.datetime(2021, 1, 1, 1), dt.datetime(2021, 1, 1, 1, 59, 59, 10 ** 6 - 1)),
              (dt.datetime(2021, 1, 1, 2), dt.datetime(2021, 1, 1, 2, 59, 59, 10 ** 6 - 1)),

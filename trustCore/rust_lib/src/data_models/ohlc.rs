@@ -1,8 +1,7 @@
 use serde::Deserialize;
-use crate::data_models::market_profile;
-use crate::data_models::Csv;
 use std::error::Error;
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct OhlcCsvRecord {
     ots: u64,    // OpenTime
