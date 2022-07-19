@@ -10,7 +10,11 @@
  *      - Take Profit 1 (TP1): "POC - X€"
  *      - Take Profit 2 (TP2): "POC + X€"
  *      - TODO: Wie legen wir X fest? Soll X überall gleich sein?
- *      - EXIT: Schlusskurs der aktuellen am Freitag 23:59 Uhr, wenn in der Woche kein Trade getriggerd wurde
+ *      - EXIT: Schlusskurs der aktuellen Woche am Freitag 23:59 Uhr, wenn in der Woche weder
+ *          - Stop-Loss
+ *          - TP1
+ *          - TP2
+ *        getriggerd wurde
  * Short:
  *  - Liegt der Schlusskurs der Vorwoche (Freitag) über dem POC?
  *  - Fällt der Kurs in der aktuellen Woche (ab Montag) unter den Schlusskurs der Vorwoche?
@@ -20,7 +24,11 @@
  *      - Take Profit 1 (TP1): "POC + X€"
  *      - Take Profit 2 (TP2): "POC - X€"
  *      - TODO: Wie legen wir X fest? Soll X überall gleich sein?
- *      - EXIT: Schlusskurs der aktuellen am Freitag 23:59 Uhr, wenn in der Woche kein Trade getriggerd wurde
+ *      - EXIT: Schlusskurs der aktuellen Woche am Freitag 23:59 Uhr, wenn in der Woche weder
+ *          - Stop-Loss
+ *          - TP1
+ *          - TP2
+ *        getriggerd wurde
  */
 
 pub fn compute() {

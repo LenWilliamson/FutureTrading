@@ -67,5 +67,5 @@ fn main() {
     let x = csv_file_name_decomposer(s);
     println!("{:?}", x);
 
-    strategies::weekly_poc::compute();
+    strategies::poc_resistance::compute();
 }
