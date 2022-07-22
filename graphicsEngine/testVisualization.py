@@ -7,7 +7,8 @@ from util.functionalLib.functional import compose
 import dataConfig as cfg
 from util.lib.timeConverter import time_converter
 
-ohlc_src: str = os.path.join(cfg.OHLC_DP, 'BTCUSDT-1h-2021-12_25_-_2022-01-08.csv')
+ohlc_file: str = 'BTCUSDT-1h-2022-02.csv'
+ohlc_src: str = os.path.join(cfg.OHLC_DP, ohlc_file)
 vol_src: str = os.path.join(cfg.VOLP_DP, 'BTCUSDT-aggTrades-2021-12__2021-12-25_00-00-00__2021-12-31_00-00-00.csv')
 ohlc: pd.DataFrame = pd.read_csv(ohlc_src, sep=',', names=cfg.OHLC_CNL)
 volume: pd.DataFrame = pd.read_csv(vol_src, sep=',')
@@ -76,7 +77,10 @@ fig_ohlc = go.Figure(
             yaxis='y',
             showlegend=False
         )
-    ]
+    ],
+    layout=go.Layout(
+        title=go.layout.Title(text=ohlc_file)
+    )
 )
 
 fig_volume = go.Figure(
@@ -92,7 +96,10 @@ fig_volume = go.Figure(
             showlegend=False,
             marker=go.bar.Marker(color='#000')
         )
-    ]
+    ],
+    layout=go.Layout(
+        title=go.layout.Title(text='Volume')
+    )
 )
 
 fig_volume_h = go.Figure(
