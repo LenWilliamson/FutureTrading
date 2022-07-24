@@ -1,3 +1,4 @@
+import datetime
 import sys
 from typing import Final
 import dataConfig as cfg
@@ -12,17 +13,18 @@ def main() -> int:
     dst_file: str = src_file
     chunk_size: Final[int] = 1000000
     vpg: VolumeProfileGenerator = VolumeProfileGenerator(cfg.AGTR_DP, cfg.AGTR_CNL, chunk_size, cfg.VOLP_DP)
-    start: dt = dt.datetime(2021, 12, 25)
+    start: dt = dt.datetime(2021, 12, 25, 15, 0, 0, tzinfo=datetime.timezone.utc)
     end: dt = dt.datetime(2021, 12, 31)  # dt.datetime(2022, 1, 14, 23, 59, 59, 10 ** 6 - 1)
-    try:
-        vpg.gen_volume_profile_interval(
-            src_file=src_file,
-            dst_file=dst_file,
-            start_time=start.timestamp(),
-            end_time=end.timestamp()
-        )
-    except ValueError as ve:
-        print(ve)
+    print(f"{start.timestamp()}")
+    # try:
+    #     vpg.gen_volume_profile_interval(
+    #         src_file=src_file,
+    #         dst_file=dst_file,
+    #         start_time=start.timestamp(),
+    #         end_time=end.timestamp()
+    #     )
+    # except ValueError as ve:
+    #     print(ve)
     return 0
 
 

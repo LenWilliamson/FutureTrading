@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use chrono::NaiveDateTime;
 use std::process;
 use substring::Substring;
 
@@ -46,8 +47,10 @@ fn csv_file_name_decomposer(csv_file: &str) -> ParseResult<TimeObject> {
     })
 }
 
+
+
 fn main() {
-    match ohlc::OhlcData::read_from_path("./BTCUSDT-1h-2022-07-11.csv") {
+/*     match ohlc::OhlcData::read_from_path("/media/len/ExterneFestplateLenCewa/DataBase/data/ohlc/rt1.csv") {
         Ok(v) => println!("recors size = {:?}: {:?}", v.records.len(), v),
         Err(e) => {
             println!("error running example: {}", e);
@@ -65,7 +68,12 @@ fn main() {
 
     let s = "BTCUSDT-aggTrades-2000-01__2000-01-29_00:00:00__2000-02-01_00:00:00.csv";
     let x = csv_file_name_decomposer(s);
-    println!("{:?}", x);
+    println!("{:?}", x); */
 
     strategies::poc_resistance::compute();
+    // let ts = NaiveDateTime::from_timestamp(1646006400000 / 1000, 0);
+    // let d = Utc.from_utc_datetime(&ts).format("%Y-%m-%d %H:%M:%S");
+    // let x = ts.weekday().number_from_monday() >= chrono::Weekday::Mon.number_from_monday();
+    // let y = ts.hour() >= 1;
+    // println!("{}, {}, {}", d, x, y);
 }

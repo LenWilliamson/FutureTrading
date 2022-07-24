@@ -4,13 +4,13 @@ use std::error::Error;
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct OhlcCsvRecord {
-    ots: u64,    // OpenTime
+    pub ots: i64,    // OpenTime
     open: f32,   // Open
-    high: f32,   // High
-    low: f32,    // Low
-    close: f32,  // Close
+    pub high: f32,   // High
+    pub low: f32,    // Low
+    pub close: f32,  // Close
     vol: f32,    // Volume
-    cts: u64,    // CloseTime
+    cts: i64,    // CloseTime
     qav: f32,    // QuoteAssetVol
     not: u32,    // NumberOfTrades
     tbbav: f32,  //  TakerBuyBaseAssetVol
@@ -19,7 +19,7 @@ pub struct OhlcCsvRecord {
 }
 #[derive(Debug, Deserialize)]
 pub struct OhlcData {
-    pub time_interval: (u64, u64),
+    pub time_interval: (i64, i64),
     pub records: Vec<OhlcCsvRecord>,
 }
 
@@ -35,6 +35,11 @@ impl OhlcData {
             let record: OhlcCsvRecord = result?;
             ohlc_data.records.push(record);
         }
+        ohlc_data.time_interval = OhlcData::compute_time_interval(&ohlc_data.records);
         Ok(ohlc_data)
+    }
+
+    fn compute_time_interval(records: &Vec<OhlcCsvRecord>) -> (i64, i64) {
+        (records.first().unwrap().ots, records.last().unwrap().cts)
     }
 }

@@ -42,7 +42,7 @@ impl VolumeProfile {
     }
 
     fn compute_poc(records: &Vec<VolumeProfileCsvRecord>) -> f32 {
-        records.iter().max_by_key(|x| OrderedFloat(x.volume)).unwrap().price
+        records.iter().max_by_key(|&x| OrderedFloat(x.volume)).unwrap().price
     }
 
     fn compute_vol_area_low(records: &Vec<VolumeProfileCsvRecord>) -> f32 {

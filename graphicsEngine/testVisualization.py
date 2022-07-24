@@ -7,13 +7,37 @@ from util.functionalLib.functional import compose
 import dataConfig as cfg
 from util.lib.timeConverter import time_converter
 
-ohlc_file: str = 'BTCUSDT-1h-2022-02.csv'
+####
+
+kw8: str = '2022/KW8.csv'
+kw9: str = '2022/KW9.csv'
+kw10: str = '2022/KW10.csv'
+
+ohlc_src8: str = os.path.join(cfg.OHLC_DP, kw8)
+ohlc_src9: str = os.path.join(cfg.OHLC_DP, kw9)
+ohlc_src10: str = os.path.join(cfg.OHLC_DP, kw10)
+
+ohlc8: pd.DataFrame = pd.read_csv(ohlc_src8, sep=',', names=cfg.OHLC_CNL, header=0)
+ohlc9: pd.DataFrame = pd.read_csv(ohlc_src9, sep=',', names=cfg.OHLC_CNL, header=0)
+ohlc10: pd.DataFrame = pd.read_csv(ohlc_src10, sep=',', names=cfg.OHLC_CNL, header=0)
+
+frame8_9 = pd.concat([ohlc8, ohlc9], axis=0, ignore_index=True)
+frame9_10 = pd.concat([ohlc9, ohlc10], axis=0, ignore_index=True)
+
+####
+
+
+ohlc_file: str = '2022/KW10.csv'
+vol_file: str = '2022/KW8_p.csv'
 ohlc_src: str = os.path.join(cfg.OHLC_DP, ohlc_file)
-vol_src: str = os.path.join(cfg.VOLP_DP, 'BTCUSDT-aggTrades-2021-12__2021-12-25_00-00-00__2021-12-31_00-00-00.csv')
-ohlc: pd.DataFrame = pd.read_csv(ohlc_src, sep=',', names=cfg.OHLC_CNL)
+vol_src: str = os.path.join(cfg.VOLP_DP, vol_file)
+ohlc: pd.DataFrame = pd.read_csv(ohlc_src, sep=',', names=cfg.OHLC_CNL, header=0)
 volume: pd.DataFrame = pd.read_csv(vol_src, sep=',')
+
+ohlc = frame8_9
+
 ohlc[cfg.OHLC_CN['ots']] = ohlc[cfg.OHLC_CN['ots']].map(compose(partial(time_converter, blank=True), lambda x: x / 1000))
-volume[cfg.VOLP_CN['px']] = volume[cfg.VOLP_CN['px']].map(lambda x: round(x / 100) * 100)
+# volume[cfg.VOLP_CN['px']] = volume[cfg.VOLP_CN['px']].map(lambda x: round(x / 100) * 100)
 
 fig = go.Figure(
     data=[
@@ -132,7 +156,7 @@ fig_volume_h = go.Figure(
     # )
 )
 
-# fig.show()
+fig.show()
 fig_ohlc.show()  # Erste Zeile in der csv Datei wird übersprungen
 # fig_volume.show()
 # fig_volume_h.show()
