@@ -1,3 +1,7 @@
+pub use crate::data_models::*;
+use chrono::format::ParseResult;
+use chrono::prelude::*;
+use ordered_float::OrderedFloat;
 /**
  * Betrachtungshorizont: Eine Woche (Mo ab 01:00 - Fr bis 23:00)
  * Berechne POC der Vorwoche
@@ -75,7 +79,7 @@
  *          - Wähle X = 1_000.00USDT => Gewinn = 42_100.00 - (39_004.73USDT + 1_000.00USDT)
  *          - ......nonsense: Wähle X = 4_000.00USDT => TIMEOUT mit Gewinn (macht kein Sinn, da oberhalb von POC)
  *      - TP2: Wähle X = 0.00USDT => Gewinn
- *      - TP3: 
+ *      - TP3:
  *          - Wähle X = 500.00USDT => Gewinn = 42_100.00 - (39_004.73USDT - 500.00USDT)
  *          - Wähle X = 1_000.00USDT => TIMEOUT mit Gewinn
  *      - TIMEOUT mit Verlust fehlt => künstlich erzeugen
@@ -108,23 +112,23 @@
  *          - Keine weiteren Fälle hier, da TP1 die risikoaverse Version ist
  *      - TP2: Wähle X = 0.00USDT => Gewinn
  *      - TP3:
- *          - Wähle X = 5_000.00USDT => GEWINN = (39_424.14 + 5_000.00) - 38_000.00 
+ *          - Wähle X = 5_000.00USDT => GEWINN = (39_424.14 + 5_000.00) - 38_000.00
  *          - Wähle X = 10_000.00USDT => TIMEOUT mit Gewinn
  *      - TIMEOUT mit Verlust fehlt => künstlich erzeugen
- * 
+ *
  * Weiterer Testfall:
  *  - Short Trade registriert, aber kein Eintritt
  *  - Long Trade registriert, aber kein Eintritt
- *  - Jede Woche liefert resulstat mit Metadaten 
- * 
+ *  - Jede Woche liefert resulstat mit Metadaten
+ *
  * Aktuell nimmst du nur den ersten entry, was ist wenn es zwei entries gibt? Wir wirkt das auf die Margin?
- * 
+ *
  * Wenn die Daten in 1Monatstabellen vorliegen muss korrekt der nächste Monat geladen werden
- * 
+ *
  * Test ob höchster und niedrigster Kurs ab Zeiptunkt des ENTRY richtig bestimmt wird
  *
  * Wir brauchen einen Fall in dem der Trade nicht closed und TIMEOUT mit Gewinn / Verlust hat
- * 
+ *
  * Wir müssen testen ob anhand der Daten der Vorwoche korrekt bestimmt wird ob wir einen Long oder
  * Short Trade erwarten
  *  
@@ -133,22 +137,14 @@
  *  - Wir müssen Shorttrade prüfen, wenn der Eröffnungskurs unter dem POC ist
  *  - Was passiert wenn in der ersten Kerze der Trade ausgelöst wird, da POC in [Low, High], aber Low bzw. High schon ausstoppen
  */
-
-
-
 use serde::Deserialize;
-use chrono::format::ParseResult;
-use chrono::prelude::*;
 use std::path::Path;
-pub use crate::data_models::*;
-use ordered_float::OrderedFloat;
 
 #[derive(Debug, Deserialize)]
 enum TimeStandardKind {
     Utc,
     Local,
 }
-
 
 #[derive(Debug)]
 enum TradeKind {
@@ -166,11 +162,16 @@ struct TimeInterval {
 }
 
 #[derive(Debug)]
+/**
+ * TODO
+ * Ergänze SL und TP und evaluiere dann
+ * Speichere Daten als JSON und visualisiere sie dann
+ */
 struct PocResistance {
     time_standard: TimeStandardKind,
     time_interval: TimeInterval,
     data_path: String,
-    data_depth: Vec<String>
+    data_depth: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -185,22 +186,68 @@ struct TradeInfo {
 #[derive(Debug)]
 struct TradeStat {
     // Bezieht sich auf die Woche vom Trade
-    entry: std::option::Option<i64>,
-    last_trade_price: std::option::Option<f32>,
-    lowest_price_since_entry: std::option::Option<f32>,
-    highest_price_since_entry: std::option::Option<f32>,
-    date_lowest_price: std::option::Option<i64>,
-    date_highest_price: std::option::Option<i64>
+    entry: i64,
+    last_trade_price: f32,
+    lowest_price_since_entry: f32,
+    highest_price_since_entry: f32,
+    date_lowest_price: i64,
+    date_highest_price: i64,
 }
 
 #[derive(Debug)]
 struct TradeEvaluation {
     trade_info: TradeInfo,
-    trade_stat: std::option::Option<TradeStat>,  // None if no trade happend
+    trade_stat: std::option::Option<TradeStat>, // None if no trade happend
+}
+
+impl TradeEvaluation {
+    fn compute_profit_and_losses(&self, strategy: &Strategy) /* -> ProfitAndLosses */ {
+        /*
+         * Check if trade_stat is not none
+         * If none -> done with empty i.e. 0 values everywhere
+         * else compute
+         * 
+         * Eigentlich kann man auch ein Vec<Strategy> übergeben? 
+         */
+    }
+}
+
+#[derive(Debug)]
+struct Strategy {
+    stop_loss_condition: f32,
+    take_profit_conditions: Vec<f32>,
+}
+
+#[derive(Debug)]
+struct StopLoss {
+    condition: f32,
+    entry_time_stamp: Option<i64>,
+    profit: Option<f32>, // profit < 0 is a loss
+}
+
+#[derive(Debug)]
+struct Timeout {
+    condition: i64, // timestamp
+    profit: f32,
+}
+
+#[derive(Debug)]
+struct TakeProfit {
+    condition: f32,
+    triggered: bool, // if true timeout == None
+    entry_time_stamp: Option<i64>,
+    profit: Option<f32>,
+    timeout: Option<Timeout>,
+}
+
+#[derive(Debug)]
+struct ProfitAndLosses {
+    stop_loss: StopLoss,
+    take_profit: Vec<TakeProfit>,
 }
 
 impl PocResistance {
-    fn eval_trade(&self, cw: u32) /* -> TradeEvaluation */ {
+    fn eval_trade(&self, cw: u32) -> TradeEvaluation {
         // compute POC for calendar week cw - 1 (for 1 < cw < 52)
         let vp = self.compute_volume_profile(cw);
         dbg!(&vp);
@@ -212,72 +259,90 @@ impl PocResistance {
         let last_trade_price = ohlc_prev.records.last().unwrap().close;
         let trade = PocResistance::determine_trade_kind(last_trade_price, vp.poc);
 
-        let ti = TradeInfo {
+        let trade_info = TradeInfo {
             last_trade_price,
-            lowest_price: ohlc_prev.records.iter().min_by_key(|&x| OrderedFloat(x.low)).unwrap().low,
-            highest_price: ohlc_prev.records.iter().max_by_key(|&x| OrderedFloat(x.high)).unwrap().high,
+            lowest_price: ohlc_prev
+                .records
+                .iter()
+                .min_by_key(|&x| OrderedFloat(x.low))
+                .unwrap()
+                .low,
+            highest_price: ohlc_prev
+                .records
+                .iter()
+                .max_by_key(|&x| OrderedFloat(x.high))
+                .unwrap()
+                .high,
             trade,
         };
 
-        let x = match PocResistance::determine_entry(&ohlc_curr, vp.poc) {
+        let trade_stat = match PocResistance::determine_entry(&ohlc_curr, vp.poc) {
             Some(e) => {
-                let l = ohlc_curr.records.iter().filter(
-                    |&x| x.ots >= e
-                ).min_by_key(
-                    |&x| OrderedFloat(x.low)
-                ).unwrap();
-                let h = ohlc_curr.records.iter().filter(
-                    |&x| x.ots >= e
-                ).max_by_key(
-                    |&x| OrderedFloat(x.high)
-                ).unwrap();
-                TradeStat {
-                    entry: Some(e),
-                    last_trade_price: Some(ohlc_curr.records.last().unwrap().close),
-                    lowest_price_since_entry: Some(l.low),
-                    highest_price_since_entry: Some(h.high),
-                    date_lowest_price: Some(l.ots),
-                    date_highest_price: Some(h.ots),
-                }
-            },
-            None => TradeStat {
-                entry: None,
-                last_trade_price: None,
-                lowest_price_since_entry: None,
-                highest_price_since_entry: None,
-                date_lowest_price: None,
-                date_highest_price: None,
+                let l = ohlc_curr
+                    .records
+                    .iter()
+                    .filter(|&x| x.ots >= e)
+                    .min_by_key(|&x| OrderedFloat(x.low))
+                    .unwrap();
+                let h = ohlc_curr
+                    .records
+                    .iter()
+                    .filter(|&x| x.ots >= e)
+                    .max_by_key(|&x| OrderedFloat(x.high))
+                    .unwrap();
+                Some(TradeStat {
+                    entry: e,
+                    last_trade_price: ohlc_curr.records.last().unwrap().close,
+                    lowest_price_since_entry: l.low,
+                    highest_price_since_entry: h.high,
+                    date_lowest_price: l.ots,
+                    date_highest_price: h.ots,
+                })
             }
+            None => None,
         };
 
-        dbg!(x);
-        // TradeEvaluation{}
-        
+        dbg!(&trade_stat);
+        TradeEvaluation {
+            trade_info,
+            trade_stat,
+        }
         //  ohlc_prev.records.iter().find(|&x| x.ots == ts_last_trade_t1).unwrap().close;
     }
 
     fn compute_volume_profile(&self, cw: u32) -> volume_profile::VolumeProfile {
         let t = (cw - 1).to_string(); // time e.g. number of calender week
-        let e = ".csv"; // (file) extension 
+        let e = ".csv"; // (file) extension
         let f = "KW".to_string() + &t + &e; // (complete) file
-        let p = Path::new(&self.data_path).join(&self.data_depth[0]).join("volumeProfile").join(f);
+        let p = Path::new(&self.data_path)
+            .join(&self.data_depth[0])
+            .join("volumeProfile")
+            .join(f);
         volume_profile::VolumeProfile::read_from_path(p.to_str().unwrap()).unwrap()
     }
 
     fn load_ohlc(&self, cw: u32) -> ohlc::OhlcData {
         let t = cw.to_string(); // time e.g. number of calender week
-        let e = ".csv"; // (file) extension 
+        let e = ".csv"; // (file) extension
         let f = "KW".to_string() + &t + &e; // (complete) file
-        let p = Path::new(&self.data_path).join(&self.data_depth[0]).join("ohlc").join(f);
+        let p = Path::new(&self.data_path)
+            .join(&self.data_depth[0])
+            .join("ohlc")
+            .join(f);
         let mut ohlc = ohlc::OhlcData::read_from_path(p.to_str().unwrap()).unwrap();
 
         // Filter ohlc records to correct interval
         // ohlc.records.iter().filter()
         let predicate = |x: &ohlc::OhlcCsvRecord| -> bool {
             let ots = NaiveDateTime::from_timestamp(x.ots / 1000, 0);
-            let weekend = ots.weekday() == chrono::Weekday::Sat || ots.weekday() == chrono::Weekday::Sun;
-            let too_early = ots.hour() < self.time_interval.start_h && ots.weekday().number_from_monday() <= self.time_interval.start_day.number_from_monday();
-            let too_late = ots.hour() >= self.time_interval.end_h && ots.weekday().number_from_monday() >= self.time_interval.end_day.number_from_monday() - 1;
+            let weekend =
+                ots.weekday() == chrono::Weekday::Sat || ots.weekday() == chrono::Weekday::Sun;
+            let too_early = ots.hour() < self.time_interval.start_h
+                && ots.weekday().number_from_monday()
+                    <= self.time_interval.start_day.number_from_monday();
+            let too_late = ots.hour() >= self.time_interval.end_h
+                && ots.weekday().number_from_monday()
+                    >= self.time_interval.end_day.number_from_monday() - 1;
             // dbg!(ots);
             // dbg!(weekend);
             // dbg!(too_early);
@@ -302,13 +367,11 @@ impl PocResistance {
     fn determine_entry(ohlc: &ohlc::OhlcData, poc: f32) -> std::option::Option<i64> {
         // Lediglich der erste Trade wird genommen
         match ohlc.records.iter().find(|&x| x.low <= poc && poc <= x.high) {
-            Some(v) =>  Some(v.ots),
-            None => None
+            Some(v) => Some(v.ots),
+            None => None,
         }
     }
-
 }
-
 
 /* fn get_unix_ts(date: &str) -> ParseResult<i64> {
     let ts = Utc
@@ -318,20 +381,25 @@ impl PocResistance {
 }
  */
 
-pub fn compute() {
-
+pub fn compute(/* Strategy */) {
     let poc_resistance = PocResistance {
         time_standard: TimeStandardKind::Utc,
         time_interval: TimeInterval {
             start_day: chrono::Weekday::Mon,
             start_h: 1,
             end_day: chrono::Weekday::Sat,
-            end_h: 23 // wir vergleichen immer auf ein offenes Intervall <
+            end_h: 23, // wir vergleichen immer auf ein offenes Intervall <
         },
         data_path: "/media/len/ExterneFestplateLenCewa/DataBase/data/".to_string(),
         data_depth: vec!["2022".to_string()],
     };
-    poc_resistance.eval_trade(9);
-    println!("poc resistance");
 
+    let s = Strategy {
+        stop_loss_condition: 0.0,
+        take_profit_conditions: vec![0.0, 0.0, 0.0],
+    };
+
+    poc_resistance.eval_trade(10).compute_profit_and_losses(&s);
+
+    println!("poc resistance");
 }
