@@ -28,13 +28,13 @@ frame9_10 = pd.concat([ohlc9, ohlc10], axis=0, ignore_index=True)
 
 
 ohlc_file: str = '2022/KW10.csv'
-vol_file: str = '2022/KW8_p.csv'
+vol_file: str = '2022/KW9_p.csv'
 ohlc_src: str = os.path.join(cfg.OHLC_DP, ohlc_file)
 vol_src: str = os.path.join(cfg.VOLP_DP, vol_file)
 ohlc: pd.DataFrame = pd.read_csv(ohlc_src, sep=',', names=cfg.OHLC_CNL, header=0)
 volume: pd.DataFrame = pd.read_csv(vol_src, sep=',')
 
-ohlc = frame8_9
+ohlc = frame9_10
 
 ohlc[cfg.OHLC_CN['ots']] = ohlc[cfg.OHLC_CN['ots']].map(compose(partial(time_converter, blank=True), lambda x: x / 1000))
 # volume[cfg.VOLP_CN['px']] = volume[cfg.VOLP_CN['px']].map(lambda x: round(x / 100) * 100)

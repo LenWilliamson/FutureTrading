@@ -139,6 +139,7 @@ use ordered_float::OrderedFloat;
  */
 use serde::Deserialize;
 use std::path::Path;
+use std::marker::Copy;
 
 #[derive(Debug, Deserialize)]
 enum TimeStandardKind {
@@ -187,29 +188,167 @@ struct TradeInfo {
 struct TradeStat {
     // Bezieht sich auf die Woche vom Trade
     entry: i64,
+    poc: f32, // Kurs zu dem wir kaufen
     last_trade_price: f32,
     lowest_price_since_entry: f32,
     highest_price_since_entry: f32,
     date_lowest_price: i64,
     date_highest_price: i64,
+    records: Vec<ohlc::OhlcCsvRecord>,
 }
 
-#[derive(Debug)]
+#[derive(/* Copy, */ Debug)]
 struct TradeEvaluation {
     trade_info: TradeInfo,
     trade_stat: std::option::Option<TradeStat>, // None if no trade happend
 }
 
+// impl Copy for TradeEvaluation {}
+
 impl TradeEvaluation {
-    fn compute_profit_and_losses(&self, strategy: &Strategy) /* -> ProfitAndLosses */ {
+    fn compute_profit_and_losses(&self, strategy: &Strategy) -> ProfitAndLosses {
         /*
          * Check if trade_stat is not none
          * If none -> done with empty i.e. 0 values everywhere
          * else compute
-         * 
-         * Eigentlich kann man auch ein Vec<Strategy> übergeben? 
+         *
+         * Eigentlich kann man auch ein Vec<Strategy> übergeben?
          */
+
+        // Stop Loss
+        let mut condition = strategy.stop_loss_condition;
+        let mut entry_time_stamp = self.compute_entry_time_stamp(condition);
+        // unwrap konsumiert => deswegen .as_ref() hinzufügen let x = self.trade_stat.as_ref().unwrap().poc;
+        let mut poc = match &self.trade_stat {
+            Some(x) => x.poc,
+            None => panic!("No POC found"),
+        };
+        let mut profit = match entry_time_stamp {
+            Some(ts) => Some(self.compute_profit(
+                ts,
+                &self.trade_info.trade,
+                poc,
+            )),
+            None => None,
+        };
+
+        let stop_loss = StopLoss {
+            condition,
+            entry_time_stamp,
+            profit,
+        };
+
+        let mut take_profit_events = Vec::<TakeProfit>::new();
+        // let mut timeout_events = Vec::<Option<Timeout>>::new();
+        // Funktional lösen
+        for tp in &strategy.take_profit_conditions {
+            condition = *tp;
+            entry_time_stamp = self.compute_entry_time_stamp(condition);
+            poc = match &self.trade_stat {
+                Some(x) => x.poc,
+                None => panic!("No POC found"),
+            };
+            profit = match entry_time_stamp {
+                Some(ts) => Some(self.compute_profit(
+                    ts,
+                    &self.trade_info.trade,
+                    poc
+                )),
+                None => None,
+            };
+            let triggered = match entry_time_stamp {
+                Some(ts) => true,
+                None => false,
+            };
+            let last_trade_price = match &self.trade_stat {
+                Some(x) => x.last_trade_price,
+                None => panic!("No last trade price"),
+            };
+            let timeout = match triggered {
+                false => Some(Timeout {
+                    condition: last_trade_price,
+                    profit: match self.trade_info.trade {
+                        TradeKind::Short => {
+                            poc - last_trade_price
+                        }
+                        TradeKind::Long => {
+                            last_trade_price - poc
+                        },
+                        TradeKind::None => panic!("Cannot compute profit for TradeKind::None")
+                    }
+                }),
+                true => None,
+            };
+            let take_profit = TakeProfit {
+                condition,
+                triggered,
+                entry_time_stamp,
+                profit,
+                timeout,
+            };
+            take_profit_events.push(take_profit);
+            // timeout_events.push(timeout);
+        }
+
+        
+
+        ProfitAndLosses {
+            stop_loss,
+            take_profit: take_profit_events,
+            // timeout: timeout_events,
+        }
     }
+
+    // Aufruf mit &self und daann self.trade_stat.records geht nicht
+    // Moving out of reference Error
+    fn compute_entry_time_stamp(&self, condition: f32) -> Option<i64> {
+        // Lediglich der erste Trade wird genommen
+        let records = match &self.trade_stat {
+            Some(x) => &x.records,
+            None => panic!("No OHLC record found"),
+        };
+        match records
+            .iter()
+            .find(|&x| x.low <= condition && condition <= x.high)
+        {
+            Some(v) => Some(v.ots),
+            None => None,
+        }
+    }
+
+    fn compute_profit(
+        &self,
+        entry_ts: i64,
+        trade_kind: &TradeKind,
+        entry_price: f32
+    ) -> f32 {
+        let records = match &self.trade_stat {
+            Some(x) => &x.records,
+            None => panic!("No OHLC record found"),
+        };
+        match trade_kind {
+            TradeKind::Short => {
+                let high = records.iter().find(|&x| x.ots == entry_ts).unwrap().high;
+                // max loss entry - high (should be negative) and min profit
+                entry_price - high
+            }
+            TradeKind::Long => {
+                let low = records.iter().find(|&x| x.ots == entry_ts).unwrap().low;
+                // max loss entry - high (should be negative) and min profit
+                low - entry_price
+            },
+            TradeKind::None => panic!("Cannot compute profit for TradeKind::None")
+        }
+    }
+}
+
+#[derive(Debug)]
+struct TakeProfit {
+    condition: f32,
+    triggered: bool, // if true timeout == None
+    entry_time_stamp: Option<i64>,
+    profit: Option<f32>,
+    timeout: Option<Timeout>,
 }
 
 #[derive(Debug)]
@@ -227,23 +366,17 @@ struct StopLoss {
 
 #[derive(Debug)]
 struct Timeout {
-    condition: i64, // timestamp
+    condition: f32, // used to be timestamp -> Now last traded price
     profit: f32,
 }
 
-#[derive(Debug)]
-struct TakeProfit {
-    condition: f32,
-    triggered: bool, // if true timeout == None
-    entry_time_stamp: Option<i64>,
-    profit: Option<f32>,
-    timeout: Option<Timeout>,
-}
+
 
 #[derive(Debug)]
 struct ProfitAndLosses {
     stop_loss: StopLoss,
     take_profit: Vec<TakeProfit>,
+    // timeout: Vec<Option<Timeout>>,
 }
 
 impl PocResistance {
@@ -292,22 +425,29 @@ impl PocResistance {
                     .unwrap();
                 Some(TradeStat {
                     entry: e,
+                    poc: vp.poc,
                     last_trade_price: ohlc_curr.records.last().unwrap().close,
                     lowest_price_since_entry: l.low,
                     highest_price_since_entry: h.high,
                     date_lowest_price: l.ots,
                     date_highest_price: h.ots,
+                    records: ohlc_curr.records,
                 })
             }
             None => None,
         };
 
-        dbg!(&trade_stat);
+        dbg!(&trade_stat.as_ref().unwrap().entry);
+        dbg!(&trade_stat.as_ref().unwrap().poc);
+        dbg!(&trade_stat.as_ref().unwrap().last_trade_price);
+        dbg!(&trade_stat.as_ref().unwrap().lowest_price_since_entry);
+        dbg!(&trade_stat.as_ref().unwrap().highest_price_since_entry);
+        dbg!(&trade_stat.as_ref().unwrap().date_lowest_price);
+        dbg!(&trade_stat.as_ref().unwrap().date_highest_price);
         TradeEvaluation {
             trade_info,
             trade_stat,
         }
-        //  ohlc_prev.records.iter().find(|&x| x.ots == ts_last_trade_t1).unwrap().close;
     }
 
     fn compute_volume_profile(&self, cw: u32) -> volume_profile::VolumeProfile {
@@ -394,12 +534,18 @@ pub fn compute(/* Strategy */) {
         data_depth: vec!["2022".to_string()],
     };
 
-    let s = Strategy {
-        stop_loss_condition: 0.0,
-        take_profit_conditions: vec![0.0, 0.0, 0.0],
-    };
+    
 
-    poc_resistance.eval_trade(10).compute_profit_and_losses(&s);
+    let x = poc_resistance.eval_trade(10);
+    // let poc = 42_100.0; // auf den musst du vorher zugreifen
+    let poc =  x.trade_stat.as_ref().unwrap().poc;
+    let lst = x.trade_info.last_trade_price;
+    let s = Strategy {
+        stop_loss_condition: poc + 494.07,
+        take_profit_conditions: vec![lst + 1_000.0, lst, lst - 500.0],
+    };
+    let p_and_l = x.compute_profit_and_losses(&s);
+    dbg!(p_and_l);
 
     println!("poc resistance");
 }
